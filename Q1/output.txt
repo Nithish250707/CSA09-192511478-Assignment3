@@ -1,0 +1,79 @@
+---- TEST T1: card=tests/card_1001.txt typed='2000\n'
+Card read: account 1001
+Enter amount: 
+Dispensed Rs 2000.0. Remaining balance Rs 3000.0
+[finally] Card ejected, session closed
+(exit code 0)
+
+---- TEST T2: card=tests/card_1001.txt typed='abc\n'
+Card read: account 1001
+Enter amount: 
+[catch InputMismatchException|NumberFormatException] Not a number: InputMismatchException
+[finally] Card ejected, session closed
+(exit code 0)
+
+---- TEST T3: card=tests/card_1001.txt typed='-500\n'
+Card read: account 1001
+Enter amount: 
+[catch IllegalArgumentException] Invalid amount: amount must be positive: -500.0
+[finally] Card ejected, session closed
+(exit code 0)
+
+---- TEST T4: card=tests/card_1002.txt typed='1000\n'
+Card read: account 1002
+Enter amount: 
+[catch InsufficientFundsException] requested Rs 1000.0 but balance is Rs 300.0
+[finally] Card ejected, session closed
+(exit code 0)
+
+---- TEST T5: card=tests/missing_card.txt typed='500\n'
+[catch FileNotFoundException] Card reader file missing: tests/missing_card.txt (No such file or directory)
+[finally] Card ejected, session closed
+(exit code 0)
+
+---- TEST T6: card=tests/card_corrupt.txt typed='500\n'
+
+[catch InputMismatchException|NumberFormatException] Not a number: NumberFormatException - For input string: "ABC-1001"
+[finally] Card ejected, session closed
+(exit code 0)
+
+---- TEST T7: card=tests/card_1001.txt typed=''
+Card read: account 1001
+Enter amount: 
+[catch NoSuchElementException] No amount entered
+[finally] Card ejected, session closed
+(exit code 0)
+
+---- TEST T8: card=tests/card_1001.txt typed='250\n'
+Card read: account 1001
+Enter amount: 
+[catch IllegalArgumentException] Invalid amount: ATM dispenses multiples of Rs 100 only
+[finally] Card ejected, session closed
+(exit code 0)
+
+---- TEST T9: card=tests/card_unknown.txt typed='500\n'
+Card read: account 9999
+Enter amount: [finally] Card ejected, session closed
+Exception in thread "main" java.lang.NullPointerException: Cannot invoke "java.lang.Double.doubleValue()" because "bal" is null
+	at AtmWithdrawal.withdraw(AtmWithdrawal.java:35)
+	at AtmWithdrawal.main(AtmWithdrawal.java:49)
+(exit code 1)
+
+---- Broader catch before narrower (javac negative/WrongOrder.java negative/CatchAllFirst.java):
+negative/WrongOrder.java:13: error: exception InputMismatchException has already been caught
+        } catch (InputMismatchException e) {          // narrower (subclass) - unreachable
+          ^
+1 error
+negative/CatchAllFirst.java:8: error: exception NumberFormatException has already been caught
+        } catch (NumberFormatException e) {
+          ^
+1 error
+
+---- java AtmErrorCodes (alternative + cost of exceptions)
+input '500' -> code 0
+input 'abc' -> code -1
+input '-200' -> code -2
+input '999999' -> code -3
+round 1: error code 2.5 ns | throw+catch Exception 186.5 ns | throw+catch without stack trace 3.4 ns
+round 2: error code 0.0 ns | throw+catch Exception 184.0 ns | throw+catch without stack trace 3.5 ns
+Stack depth captured here: 1 frames (each frame is a StackTraceElement object when materialised)

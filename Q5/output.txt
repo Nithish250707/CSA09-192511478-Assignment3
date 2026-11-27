@@ -1,0 +1,38 @@
+### unsync/SeatBooking (TODO 1 WITHOUT synchronized), 10 runs
+run  1: Seats sold: 10
+run  2: Seats sold: 10
+run  3: Seats sold: 10
+run  4: Seats sold: 10
+run  5: Seats sold: 10
+run  6: Seats sold: 10
+run  7: Seats sold: 10
+run  8: Seats sold: 10
+run  9: Seats sold: 10
+run 10: Seats sold: 10
+
+### SeatBooking (TODO 1 completed with synchronized), 10 runs
+run  1: Seats sold: 10
+run  2: Seats sold: 10
+run  3: Seats sold: 10
+run  4: Seats sold: 10
+run  5: Seats sold: 10
+run  6: Seats sold: 10
+run  7: Seats sold: 10
+run  8: Seats sold: 10
+run  9: Seats sold: 10
+run 10: Seats sold: 10
+
+### java RaceStudy
+A) Reliable reproduction: 10 seats, 100 threads released together by a CountDownLatch, 10 runs
+   unsync + 1 ms window     : seats sold per run = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]  double bookings in 10 runs = 900
+   unsync, no delay, 8 threads x 125,000 attempts on 100,000 seats: double bookings per run = [1, 6, 0, 60, 254, 1570, 391, 976, 354, 995]  total = 4607
+   synchronized method      : seats sold per run = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+
+B) 10,000 bookings (1,000 seats, 8 threads x 1,250 attempts), mean of 5 runs after 1 warm-up
+   strategy                            time (ms)       sold
+   unsynchronized (no yield)                3.18       1024
+   synchronized method                     22.73       1000
+   synchronized block                       3.30       1000
+   AtomicBoolean CAS                        3.19       1000
+   ReentrantLock                            3.34       1000
+   ConcurrentHashMap.putIfAbsent            3.82       1000

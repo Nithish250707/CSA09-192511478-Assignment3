@@ -1,0 +1,51 @@
+### java ScannerStations
+=== A. extends Thread, with start/sleep/join/isAlive and states ===
+before start: Station-1 state=NEW isAlive=false
+20 ms after start: state=TIMED_WAITING isAlive=true
+after join: state=TERMINATED isAlive=false
+finish order: [Station-2, Station-1, Station-4, Station-3]  TOTAL scanned = 100
+
+=== B. implements Runnable ===
+finish order: [Station-2, Station-1, Station-4, Station-3]  TOTAL scanned = 100
+
+=== C. run() instead of start() ===
+  task executing in thread: main
+  after run(): Station-X state=NEW (never started)
+  task executing in thread: Station-X
+
+=== D. 10 runs: order in which stations finish (same seeds every run) ===
+  run  1: [S1, S2, S3, S4]
+  run  2: [S2, S1, S4, S3]
+  run  3: [S2, S1, S4, S3]
+  run  4: [S2, S1, S3, S4]
+  run  5: [S1, S2, S3, S4]
+  run  6: [S1, S2, S4, S3]
+  run  7: [S1, S2, S3, S4]
+  run  8: [S1, S2, S4, S3]
+  run  9: [S2, S1, S3, S4]
+  run 10: [S1, S2, S4, S3]
+
+=== E. priorities (CPU-bound stations; S1=MAX_PRIORITY, others MIN_PRIORITY), 10 runs, 10 cores ===
+  run  1: [S3, S1, S4, S2]
+  run  2: [S2, S3, S4, S1]
+  run  3: [S1, S2, S3, S4]
+  run  4: [S1, S2, S4, S3]
+  run  5: [S1, S2, S3, S4]
+  run  6: [S1, S2, S4, S3]
+  run  7: [S1, S2, S3, S4]
+  run  8: [S1, S2, S3, S4]
+  run  9: [S1, S2, S3, S4]
+  run 10: [S2, S1, S3, S4]
+
+=== F. ExecutorService alternative: n scripts (5 ms each), p threads ===
+  approach                        time (ms)
+  4 manual Threads                      618   (expected ~ n/p x 5 = 500)
+  fixed pool p=1                       2475   (expected ~ n/p x 5 = 2000)
+  fixed pool p=2                       1233   (expected ~ n/p x 5 = 1000)
+  fixed pool p=4                        616   (expected ~ n/p x 5 = 500)
+  fixed pool p=8                        311   (expected ~ n/p x 5 = 250)
+  fixed pool p=16                       158   (expected ~ n/p x 5 = 125)
+
+### java ScannerStations daemon   (main returns while a daemon station is still working)
+  main ends now; daemon has scanned 7 of 500, isAlive=true
+  (JVM exited - no 'daemon station finished' line was printed)

@@ -1,0 +1,46 @@
+### TokenCounter (Complete the Code, while + notifyAll), 5 runs
+Sum of tokens collected: 210 (expected 210)
+Sum of tokens collected: 210 (expected 210)
+Sum of tokens collected: 210 (expected 210)
+Sum of tokens collected: 210 (expected 210)
+Sum of tokens collected: 210 (expected 210)
+
+### ifvariant/TokenCounter (while changed to if), 30 runs (5 s timeout each) - outcome counts
+   4 Sum of tokens collected: 135 (expected 210)
+  26 Sum of tokens collected: 210 (expected 210)
+
+### java WalletTransfers  (Part A)
+1) Naive transfers A->B (Rs 100) and B->A (Rs 50) at the same time, 5 trials
+   T1(A->B) is BLOCKED waiting for WalletTransfers$Wallet@41629346 held by T2(B->A)
+   T2(B->A) is BLOCKED waiting for WalletTransfers$Wallet@15aeb7ab held by T1(A->B)
+   trial 1: DEADLOCK detected (2 threads), balances never updated
+   trial 2: DEADLOCK detected (4 threads), balances never updated
+   trial 3: DEADLOCK detected (6 threads), balances never updated
+   trial 4: DEADLOCK detected (8 threads), balances never updated
+   trial 5: DEADLOCK detected (10 threads), balances never updated
+   deadlocked in 5/5 trials
+
+2) Same pair of transfers with lock ordering (lower wallet id first), 5 trials
+   trial 1: completed, A=950 B=1050 (expected A=950 B=1050)
+   trial 2: completed, A=950 B=1050 (expected A=950 B=1050)
+   trial 3: completed, A=950 B=1050 (expected A=950 B=1050)
+   trial 4: completed, A=950 B=1050 (expected A=950 B=1050)
+   trial 5: completed, A=950 B=1050 (expected A=950 B=1050)
+
+3) Stress: 8 threads, 10 wallets, 200,000 random transfers each strategy; money must be conserved
+   ordered :   44 ms, total money = 100000 (expected 100000), lock attempts per transfer = 1.000
+   tryLock : 105536 ms, total money = 100000 (expected 100000), lock attempts per transfer = 4.211
+
+### java ProducerConsumerStudy  (Part B)
+1) Counter size over time (capacity 5, 1 cook x 20 tokens, 2 students), notifyAll + while
+   sizes after each operation: [1, 2, 3, 4, 3, 4, 3, 4, 3, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0]
+   min = 0, max = 5, operations = 40, sum = 210 (expected 210)
+   stress 3 cooks x 20,000 tokens, 4 students: min = 0, max = 5, operations = 120000, sum ok = true
+
+2) notify() vs notifyAll(): 2 cooks + 2 students, capacity 1, 2,000 tokens per cook, 30 trials, 2 s timeout each
+   notify()   : hung (all threads waiting) in 30/30 trials
+   notifyAll(): hung (all threads waiting) in 0/30 trials
+
+3) Time per put/take: hand-written wait/notifyAll counter vs ArrayBlockingQueue (capacity 5, 2 producers x 500,000, 2 consumers)
+   round 1: wait/notifyAll 758 ns per token | ArrayBlockingQueue 1524 ns per token
+   round 2: wait/notifyAll 1358 ns per token | ArrayBlockingQueue 1331 ns per token

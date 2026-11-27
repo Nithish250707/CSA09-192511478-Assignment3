@@ -1,0 +1,50 @@
+### complete/StorageDemo.java (Complete the Code)
+Saved answer01.pdf
+Error: Could not store answer02.pdf
+Cause: Disk quota exceeded
+
+### complete_nocause/StorageDemo.java (experiment: IOException NOT passed to the constructor)
+Saved answer01.pdf
+Error: Could not store answer02.pdf
+Exception in thread "main" java.lang.NullPointerException: Cannot invoke "java.lang.Throwable.getMessage()" because the return value of "ExamException.getCause()" is null
+	at StorageDemo.main(StorageDemo.java:35)
+
+### portal/PortalDemo (three-layer portal)
+| # | Scenario | Exception expected | Message shown to student |
+|---|---|---|---|
+| 1 | valid submission | none | ACCEPTED: ans.pdf submitted. |
+| 2 | after window | ExamWindowClosedException | REJECTED: Exam window closed at 12:00. Late submissions are not accepted. |
+| 3 | not registered | NotRegisteredException | REJECTED: 192511001 is not registered for CSA09. Contact the exam cell. |
+| 4 | file 800 KB | AnswerFileTooLargeException | REJECTED: big.pdf is 800 KB; limit is 500 KB. Compress the file and resubmit. |
+   [server log] SubmissionStorageException: Could not store ans.pdf for 192511478
+   [server log]   caused by: java.io.IOException: No space left on device (/exam-store)
+| 5 | disk full (chained) | SubmissionStorageException <- IOException | REJECTED: Server could not save your answer. It has NOT been submitted; please retry. (ref 5674cd4d) |
+   [server log] SubmissionStorageException: Could not store ans.pdf for 192511478
+   [server log]   caused by: <none - root cause lost>
+| 6 | disk full, cause NOT passed | SubmissionStorageException (no cause) | REJECTED: Server could not save your answer. It has NOT been submitted; please retry. (ref 63961c42) |
+   [server log] InvalidSubmissionException: regNo must not be blank
+| 7 | blank regNo (caller bug) | InvalidSubmissionException (unchecked) | REJECTED: invalid request (regNo must not be blank) |
+
+=== Full chained stack trace (scenario 5, printed by printStackTrace) ===
+SubmissionStorageException: Could not store ans.pdf for 192511478
+	at SubmissionStorage.store(Layers.java:14)
+	at SubmissionService.submit(Layers.java:28)
+	at PortalDemo.main(PortalDemo.java:24)
+Caused by: java.io.IOException: No space left on device (/exam-store)
+	at Disk.write(Exceptions.java:32)
+	at SubmissionStorage.store(Layers.java:12)
+	... 2 more
+getCause() = java.io.IOException: No space left on device (/exam-store)
+getCause().getMessage() = No space left on device (/exam-store)
+
+=== Same failure re-thrown WITHOUT its cause ===
+SubmissionStorageException: Could not store ans.pdf for 192511478
+	at SubmissionStorage.store(Layers.java:15)
+	at SubmissionService.submit(Layers.java:28)
+	at PortalDemo.main(PortalDemo.java:32)
+getCause() = null
+
+=== Cost of capturing stack traces (alternative concept) ===
+depth  1: new exception 231 ns | new chained exception (cause + wrapper) 441 ns | frames recorded 2
+depth 10: new exception 343 ns | new chained exception (cause + wrapper) 678 ns | frames recorded 11
+depth 50: new exception 914 ns | new chained exception (cause + wrapper) 1832 ns | frames recorded 51

@@ -1,0 +1,54 @@
+Initializing jdb ...
+> Deferring breakpoint ReportGenerators:27.
+It will be set after the class is loaded.
+> Deferring breakpoint ReportGenerators:35.
+It will be set after the class is loaded.
+> Deferring all java.lang.NumberFormatException.
+It will be set after the class is loaded.
+> run DebugManual
+Set uncaught java.lang.Throwable
+Set deferred uncaught java.lang.Throwable
+> 
+VM Started: Set deferred breakpoint ReportGenerators:35
+Set deferred breakpoint ReportGenerators:27
+
+Breakpoint hit: "thread=main", ReportGenerators.manual(), line=27 bci=56
+27                    BufferedReader in = new BufferedReader(new FileReader(path));
+
+main[1]  path = "stores_bad/store1.csv"
+main[1] > 
+Breakpoint hit: "thread=main", ReportGenerators.manual(), line=35 bci=118
+35                    in.close();                                            // NEVER reached if the loop throws -> leak
+
+main[1]  path = "stores_bad/store1.csv"
+main[1] > 
+Breakpoint hit: "thread=main", ReportGenerators.manual(), line=27 bci=56
+27                    BufferedReader in = new BufferedReader(new FileReader(path));
+
+main[1]  path = "stores_bad/store3.csv"
+main[1] > Set deferred all java.lang.NumberFormatException
+
+Exception occurred: java.lang.NumberFormatException (to be caught at: ReportGenerators.manual(), line=43 bci=240)"thread=main", jdk.internal.math.FloatingDecimal.readJavaFormatString(), line=2,054 bci=825
+
+main[1]   [1] jdk.internal.math.FloatingDecimal.readJavaFormatString (FloatingDecimal.java:2,054)
+  [2] jdk.internal.math.FloatingDecimal.parseDouble (FloatingDecimal.java:110)
+  [3] java.lang.Double.parseDouble (Double.java:792)
+  [4] ReportGenerators.manual (ReportGenerators.java:33)
+  [5] DebugManual.main (DebugManual.java:6)
+main[1] main[4] Method arguments:
+stores = instance of java.util.ImmutableCollections$List12(id=934)
+outFile = "out/debug_report.csv"
+Local variables:
+out = instance of java.io.BufferedWriter(id=936)
+current = "stores_bad/store3.csv"
+grand = 502.0
+path = "stores_bad/store3.csv"
+in = instance of java.io.BufferedReader(id=937)
+total = 310.5
+line = "item2,TWENTY"
+p = instance of java.lang.String[2] (id=939)
+main[4] > Nov 27, 2026 9:53:34 PM ReportGenerators manual
+SEVERE: manual: failed while processing stores_bad/store3.csv: java.lang.NumberFormatException: For input string: "TWENTY"
+manual() returned false, open fds = 9
+
+The application exited

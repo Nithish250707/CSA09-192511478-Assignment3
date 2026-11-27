@@ -1,0 +1,36 @@
+### java ReportDemo 200   (run with ulimit -n 64)
+1) Good input - both versions
+  manual ok=true, twr ok=true, reports identical: true
+    store1.csv,502.00
+    store2.csv,902.00
+    store3.csv,1302.00
+    store4.csv,1702.00
+    store5.csv,2102.00
+    TOTAL,6510.00
+  open fds before=5 after=5
+
+2) Failing input (stores_bad/store3.csv has 'TWENTY' as an amount) - files left open
+  [LOG SEVERE] manual: failed while processing stores_bad/store3.csv: java.lang.NumberFormatException: For input string: "TWENTY"
+  [LOG SEVERE] try-with-resources: failed while processing stores_bad/store3.csv: java.lang.NumberFormatException: For input string: "TWENTY"
+  open fds: before=5, after manual=6 (leaked 1), after try-with-resources=6 (leaked 0)
+  partial report written by manual version:
+    store1.csv,502.00
+    store2.csv,902.00
+
+3) Repeating the failing manual run 200 times (a server that re-runs the report)
+  after run 10: open fds = 16
+  after run 20: open fds = 26
+  after run 30: open fds = 36
+  after run 40: open fds = 46
+  after run 50: open fds = 56
+  run 59 FAILED: java.io.FileNotFoundException: stores_bad/store1.csv (Too many open files)  (open fds = 64)
+
+4) Closing order and suppressed exceptions in try-with-resources
+  open storeReader
+  open reportWriter
+  body throws
+  close reportWriter
+  close storeReader
+  caught primary: java.io.IOException: read failed in body
+  suppressed   : java.lang.IllegalStateException: close failed: reportWriter
+  suppressed   : java.lang.IllegalStateException: close failed: storeReader

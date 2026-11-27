@@ -1,0 +1,39 @@
+1) Hand-checked sample (sample/index.txt, 10 entries), pool of 4
+   Summary[files=10, ok=5, corrupt=4, missing=1, otherErrors=0, passed=3, avgGpa=7.4799999999999995, millis=7]  complete=true
+   OK      StudentResult[regNo=192511001, total=437, gpa=9.2, pass=true]
+   OK      StudentResult[regNo=192511002, total=282, gpa=5.4, pass=false]
+   OK      StudentResult[regNo=192511003, total=350, gpa=8.0, pass=true]
+   OK      StudentResult[regNo=192511004, total=500, gpa=10.0, pass=true]
+   OK      StudentResult[regNo=192511005, total=249, gpa=4.8, pass=false]
+   CORRUPT s06.txt : ResultProcessor$CorruptScoreFileException: non-numeric mark 'AB'
+   CORRUPT s07.txt : ResultProcessor$CorruptScoreFileException: expected 5 marks, found 3
+   CORRUPT s08.txt : ResultProcessor$CorruptScoreFileException: bad register number '19251X008'
+   MISSING s09.txt : java.nio.file.NoSuchFileException: sample/s09.txt
+   CORRUPT s10.txt : ResultProcessor$CorruptScoreFileException: mark out of range 101
+
+2) 10,000 generated files: injected corrupt = 226, missing = 96
+   pool      run1 ms    run2 ms    run3 ms       ok  corrupt  missing  complete
+   1             303        302        284     9678      226       96      true
+   2             260        280        261     9678      226       96      true
+   4             283        283        275     9678      226       96      true
+   8             249        266        280     9678      226       96      true
+   16            257        270        260     9678      226       96      true
+
+3) Alternatives on the same 10,000 files
+   parallelStream (common pool, 9 workers): 284 ms, ok=9678, failed=322
+   parallelStream without per-element catch: whole pipeline aborted by CorruptScoreFileException: expected 5 marks, found 3
+   one thread per file: 297 ms, ok=9678, failed=322, threads created=10000, peak alive at once=24
+
+4) Breakdown, single thread: open+read only vs parse+validate only
+   open+read 10,000 files: 286 ms | parse+validate in memory: 5.8 ms
+   read-only with pool p=1: 286 ms
+   read-only with pool p=2: 266 ms
+   read-only with pool p=4: 267 ms
+   read-only with pool p=8: 247 ms
+
+5) Same ExecutorService design when each file needs CPU work (5,000 x SHA-256 per file)
+   p=1     1787 ms
+   p=2      899 ms
+   p=4      478 ms
+   p=8      330 ms
+   p=16     305 ms
